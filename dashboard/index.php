@@ -54,8 +54,8 @@ if ($user) {
     </label>
     <button type="submit">Add User</button>
 </form>
-
-<h2>All Users</h2>
+<h1
+<h2>Users List </h2>
 <ul>
 <?php
 $stmt = $conn->query('SELECT id, name, email FROM users ORDER BY id DESC');
