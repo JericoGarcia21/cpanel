@@ -5,7 +5,7 @@ declare(strict_types=1);
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <title>Message Wall</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -14,7 +14,10 @@ declare(strict_types=1);
     html, body { font-family: 'Inter', system-ui, sans-serif; margin: 0; height: 100%; overflow: hidden; }
     .bubble {
         transition: font-size 0.6s ease, opacity 0.6s ease;
-        white-space: nowrap;
+        max-width: 92vw;
+        text-align: center;
+        word-break: break-word;
+        overflow-wrap: break-word;
     }
     #popup {
         opacity: 0;
@@ -30,14 +33,14 @@ declare(strict_types=1);
 </style>
 </head>
 <body class="bg-white relative w-full h-full">
-    <div id="cloud" class="absolute inset-0 flex flex-col flex-wrap content-center justify-center items-center gap-4 p-10 overflow-hidden"></div>
-    <div id="moreCount" class="fixed top-3 right-4 text-slate-400 text-xs hidden"></div>
+    <div id="cloud" class="absolute inset-0 flex flex-col flex-wrap content-center justify-center items-center gap-3 sm:gap-4 p-4 sm:p-10 overflow-hidden"></div>
+    <div id="moreCount" class="fixed top-2 right-3 sm:top-3 sm:right-4 text-slate-400 text-[10px] sm:text-xs hidden"></div>
 
-    <div id="popup" class="fixed inset-0 flex items-center justify-center bg-white z-10 p-10 text-center border-t-4 border-slate-900">
-        <span id="popupText" class="text-slate-900 font-extrabold text-[clamp(2rem,8vw,6rem)]"></span>
+    <div id="popup" class="fixed inset-0 flex items-center justify-center bg-white z-10 p-6 sm:p-10 text-center border-t-4 border-slate-900">
+        <span id="popupText" class="text-slate-900 font-extrabold text-[clamp(1.5rem,9vw,6rem)] max-w-[92vw] break-words"></span>
     </div>
 
-    <div class="fixed bottom-3 right-4 text-slate-300 text-xs">press R to reset</div>
+    <div class="fixed bottom-2 right-3 sm:bottom-3 sm:right-4 text-slate-300 text-[10px] sm:text-xs">press R to reset</div>
 
 <script>
 const COLORS = ['#0f172a', '#334155', '#1d4ed8', '#0f766e', '#7c3aed', '#b91c1c'];
@@ -52,6 +55,7 @@ let known = new Map(); // id -> count
 let popupQueue = [];
 let popupBusy = false;
 let firstLoad = true;
+let lastMessages = [];
 
 function colorFor(id) {
     return COLORS[id % COLORS.length];
@@ -91,10 +95,14 @@ function renderCloud(messages) {
     const density = Math.min(1, 24 / Math.max(1, visible.length));
     const maxCount = Math.max(1, ...visible.map(m => m.count));
 
+    // on narrow screens (phones/tablets held up as a mini "big screen"),
+    // shrink everything further so long words don't force horizontal overflow
+    const viewportScale = Math.max(0.4, Math.min(1, window.innerWidth / 900));
+
     cloudEl.innerHTML = '';
     visible.forEach(m => {
         const ratio = m.count / maxCount;
-        const size = Math.max(0.75, (1.1 + ratio * 4.5) * Math.max(0.45, density)); // rem
+        const size = Math.max(0.7, (1.1 + ratio * 4.5) * Math.max(0.45, density) * viewportScale); // rem
         const bubble = document.createElement('div');
         bubble.className = 'bubble font-bold';
         bubble.style.fontSize = size + 'rem';
@@ -127,6 +135,7 @@ async function poll() {
         }
 
         known = new Map(messages.map(m => [m.id, m.count]));
+        lastMessages = messages;
         renderCloud(messages);
         firstLoad = false;
     } catch (e) {
@@ -154,6 +163,12 @@ document.addEventListener('keydown', async (e) => {
     } catch (e) {
         alert('Network error.');
     }
+});
+
+let resizeTimer;
+window.addEventListener('resize', () => {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(() => renderCloud(lastMessages), 200);
 });
 
 poll();
