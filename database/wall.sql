@@ -5,5 +5,6 @@ CREATE TABLE wall_messages (
     count INT NOT NULL DEFAULT 1,
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    UNIQUE KEY uniq_normalized_text (normalized_text)
-);
+    UNIQUE KEY uniq_normalized_text (normalized_text),
+    KEY idx_updated_at (updated_at)
+) ENGINE=InnoDB;

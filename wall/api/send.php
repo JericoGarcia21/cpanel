@@ -34,12 +34,28 @@ if ($normalized === '') {
     wall_json_response(['error' => 'Message cannot be empty.'], 400);
 }
 
-$stmt = $conn->prepare(
-    'INSERT INTO wall_messages (text, normalized_text, count)
-     VALUES (:text, :normalized, 1)
-     ON DUPLICATE KEY UPDATE count = count + 1, updated_at = CURRENT_TIMESTAMP'
-);
-$stmt->execute(['text' => $text, 'normalized' => $normalized]);
+// Many people can submit the same popular phrase at the same instant, and
+// InnoDB can deadlock (1213) or time out on the row lock (1205) when that
+// happens. Retry a few times with jittered backoff before giving up.
+$maxAttempts = 5;
+for ($attempt = 1; ; $attempt++) {
+    try {
+        $stmt = $conn->prepare(
+            'INSERT INTO wall_messages (text, normalized_text, count)
+             VALUES (:text, :normalized, 1)
+             ON DUPLICATE KEY UPDATE count = count + 1, updated_at = CURRENT_TIMESTAMP'
+        );
+        $stmt->execute(['text' => $text, 'normalized' => $normalized]);
+        break;
+    } catch (PDOException $e) {
+        $mysqlErrorCode = $e->errorInfo[1] ?? null;
+        $isRetryable = in_array($mysqlErrorCode, [1213, 1205], true);
+        if (!$isRetryable || $attempt >= $maxAttempts) {
+            wall_json_response(['error' => 'The wall is busy, please try again.'], 503);
+        }
+        usleep(random_int(10_000, 40_000) * $attempt);
+    }
+}
 
 $_SESSION['wall_last_submit'] = $now;
 
