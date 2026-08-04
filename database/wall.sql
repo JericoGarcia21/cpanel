@@ -1,0 +1,9 @@
+CREATE TABLE wall_messages (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    text VARCHAR(150) NOT NULL,
+    normalized_text VARCHAR(150) NOT NULL,
+    count INT NOT NULL DEFAULT 1,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    UNIQUE KEY uniq_normalized_text (normalized_text)
+);

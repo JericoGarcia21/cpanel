@@ -131,3 +131,15 @@ git push
    - **rsync: command not found** — rare, but some minimal hosting environments don't have `rsync` installed; you'd need to ask your host to install it or switch to an SCP/FTP-based action instead.
 
 Once a run finishes green, automatic deployment is fully working: from then on, every `git push` to `main` updates your live cPanel site with no manual upload needed.
+
+
+for error database 
+If that file doesn't exist there, check the account-wide log instead:
+
+bash
+find ~ -name "error_log" -newer ~/public_html/index.php
+
+or simply:
+
+bash
+tail -50 /home/jeribhfg/logs/jericogarcia.site.error.log
