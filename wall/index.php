@@ -41,6 +41,7 @@ $qrSrc = 'https://api.qrserver.com/v1/create-qr-code/?size=320x320&data=' . urle
                 Open the big screen
             </a>
         </div>
+        <div>Hello</div>
     </div>
 </body>
 </html>
