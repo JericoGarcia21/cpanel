@@ -38,7 +38,7 @@ $qrSrc = 'https://api.qrserver.com/v1/create-qr-code/?size=320x320&data=' . urle
         <div class="mt-10">
             <a href="display.php"
                class="inline-flex items-center gap-2 border border-slate-300 hover:border-slate-400 text-slate-700 font-medium px-5 py-2.5 rounded-full transition">
-                Open the big screen
+                Open the big screens
             </a>
         </div>
     </div>
