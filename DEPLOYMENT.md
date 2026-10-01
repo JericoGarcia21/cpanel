@@ -27,6 +27,50 @@ ssh-keygen -t ed25519 -f cpanel_deploy_key -N ""
 This creates two files:
 - `cpanel_deploy_key` — the **private** key (keep secret, goes into GitHub)
 - `cpanel_deploy_key.pub` — the **public** key (goes into cPanel)
+
+**Windows PowerShell alternative:**
+
+```powershell
+ssh-keygen -t ed25519 -f "$env:USERPROFILE\.ssh\github_actions" -N '""'
+```
+
+This creates:
+
+```text
+C:\Users\YOUR_USERNAME\.ssh\github_actions
+C:\Users\YOUR_USERNAME\.ssh\github_actions.pub
+```
+
+Check that both files exist:
+
+```powershell
+dir "$env:USERPROFILE\.ssh\github_actions*"
+```
+
+Display the public key and copy the entire line:
+
+```powershell
+Get-Content "$env:USERPROFILE\.ssh\github_actions.pub" 
+```
+
+It should start with `ssh-ed25519`. In cPanel, go to **SSH Access** → **Manage SSH Keys** → **Import Key**, use `github_actions` as the key name, paste the public key into the **Public Key** field, then select **Import** → **Manage** → **Authorize**.
+
+Keep `C:\Users\YOUR_USERNAME\.ssh\github_actions` private. Its contents will be used as the `SSH_PRIVATE_KEY` GitHub secret.
+
+To display the private key so you can copy it:
+
+```powershell
+Get-Content "$env:USERPROFILE\.ssh\github_actions"
+```
+
+Or copy it directly to the clipboard:
+
+```powershell
+Get-Content "$env:USERPROFILE\.ssh\github_actions" -Raw | Set-Clipboard
+```
+
+Paste the private key into the GitHub Actions secret named `SSH_PRIVATE_KEY`. Never paste the private key into cPanel or share it publicly.
+
 ssh-keygen -m PEM -t rsa -b 4096 -f ~/.ssh/github_actions2 -N ""
 to test it ssh -p 21098 -i ~/.ssh/github_actions2 jeribhfg@66.29.141.181
 ### 3. Authorize the public key in cPanel
