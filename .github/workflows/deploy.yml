@@ -1,24 +1,37 @@
-name: Deploy to cPanel
+name: Test cPanel SSH
 
 on:
-  push:
-    branches:
-      - main
+  workflow_dispatch:
 
 jobs:
-  deploy:
+  test:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout code
+      - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Deploy via rsync over SSH
-        uses: easingthemes/ssh-deploy@v6
-        with:
+      - name: Prepare SSH key
+        env:
           SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
-          REMOTE_HOST: ${{ secrets.SSH_HOST }}
-          REMOTE_USER: ${{ secrets.SSH_USERNAME }}
-          REMOTE_PORT: ${{ secrets.SSH_PORT }}
-          TARGET: ${{ secrets.REMOTE_TARGET }}
-          ARGS: "-avzr --delete"
-          EXCLUDE: "/.git/, /.github/, /.gitignore, /.env"
+        run: |
+          mkdir -p ~/.ssh
+          printf '%s\n' "$SSH_PRIVATE_KEY" | tr -d '\r' > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+
+      - name: Validate SSH key
+        run: |
+          ssh-keygen -y -f ~/.ssh/id_rsa > /tmp/public_key
+          echo "SSH private key format is valid."
+
+      - name: Test SSH connection
+        run: |
+          ssh-keyscan -p 21098 server264.web-hosting.com >> ~/.ssh/known_hosts
+
+          ssh \
+            -p 21098 \
+            -i ~/.ssh/id_rsa \
+            -o IdentitiesOnly=yes \
+            -o StrictHostKeyChecking=yes \
+            jericxyz@server264.web-hosting.com \
+            "echo SSH_CONNECTION_SUCCESS"
