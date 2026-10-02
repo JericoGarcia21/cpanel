@@ -6,33 +6,42 @@ declare(strict_types=1);
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="theme-color" content="#f7f8f4">
 <title>Message Wall</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@600;700;800&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
 <style>
-    html, body { font-family: 'Inter', system-ui, sans-serif; margin: 0; height: 100%; overflow: hidden; }
+    :root { color-scheme: light; --ink: #17191b; --paper: #f7f8f4; }
+    html, body { background: var(--paper); color: var(--ink); font-family: 'DM Sans', sans-serif; margin: 0; height: 100%; overflow: hidden; }
     .bubble {
+        font-family: 'Space Grotesk', sans-serif;
         transition: font-size 0.6s ease, opacity 0.6s ease;
         max-width: 92vw;
         text-align: center;
         word-break: break-word;
         overflow-wrap: break-word;
     }
+    #moreCount { color: #334155; }
     #popup {
+        background-color: var(--paper);
+        border-top-color: var(--ink);
         opacity: 0;
         pointer-events: none;
         transition: opacity 0.35s ease;
     }
     #popup.show { opacity: 1; }
     #popup span {
+        color: var(--ink);
         transform: scale(0.85);
         transition: transform 0.35s cubic-bezier(.34,1.56,.64,1);
     }
     #popup.show span { transform: scale(1); }
+    .reset-hint { color: #60655e; }
 </style>
 </head>
-<body class="bg-white relative w-full h-full">
+<body class="relative w-full h-full">
     <div id="cloud" class="absolute inset-0 flex flex-col flex-wrap content-center justify-center items-center gap-3 sm:gap-4 p-4 sm:p-10 overflow-hidden"></div>
     <div id="moreCount" class="fixed top-2 right-3 sm:top-3 sm:right-4 text-slate-400 text-[10px] sm:text-xs hidden"></div>
 
@@ -40,7 +49,7 @@ declare(strict_types=1);
         <span id="popupText" class="text-slate-900 font-extrabold text-[clamp(1.5rem,9vw,6rem)] max-w-[92vw] break-words"></span>
     </div>
 
-    <div class="fixed bottom-2 right-3 sm:bottom-3 sm:right-4 text-slate-300 text-[10px] sm:text-xs">press R to reset</div>
+    <div class="reset-hint fixed bottom-2 right-3 sm:bottom-3 sm:right-4 text-[10px] sm:text-xs">press R to reset</div>
 
 <script>
 const COLORS = ['#0f172a', '#334155', '#1d4ed8', '#0f766e', '#7c3aed', '#b91c1c'];

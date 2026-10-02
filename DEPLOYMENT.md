@@ -164,7 +164,34 @@ git commit -m "Add auto-deploy workflow"
 git push
 ```
 
-### 7. Push and verify
+### 7. Set up the MySQL database
+
+1. In cPanel, open **MySQL Database Wizard** (or **MySQL Databases**).
+2. Create a database. cPanel may add your account name as a prefix; record the full database name it shows.
+3. Create a database user with a strong password. Record the full username, including any cPanel prefix.
+4. Add that user to the database and grant **All Privileges**.
+5. Open **phpMyAdmin**, select the new database, choose **Import**, and import the project's `database/wall.sql` file. This creates the `wall_messages` table.
+
+If you have permission to create databases directly with MySQL, this is the SQL command. Replace the example name with the full database name shown in cPanel. Shared hosts may require you to create it with **MySQL Database Wizard** instead:
+
+```sql
+CREATE DATABASE IF NOT EXISTS `your_cpanelprefix_database`
+  CHARACTER SET utf8mb4
+  COLLATE utf8mb4_unicode_ci;
+```
+
+6. Create a `.env` file in the deployed project root (the same directory as `index.php` and `vendor/`). Set its values to the credentials and database details from cPanel:
+
+    ```dotenv
+    DB_HOST=localhost
+    DB_NAME=your_cpanelprefix_database
+    DB_USER=your_cpanelprefix_user
+    DB_PASS="your_database_password"
+    ```
+
+    Use the MySQL host shown by your hosting provider if it is not `localhost`. Keep `.env` private and do not commit it to GitHub; the workflow excludes it from deployment, so create it on the server after the first deploy.
+
+### 8. Push and verify
 
 1. Go to your GitHub repo → **Actions** tab. You should see the "Deploy to cPanel" workflow running (a yellow dot → green check when done).
 2. Click into the run to see live logs of the SSH connection and file transfer.

@@ -15,6 +15,10 @@ if ($now - $lastSubmit < 2) {
 }
 
 $body = json_decode(file_get_contents('php://input') ?: '', true);
+if (!is_array($body) || ($body['publicConsent'] ?? false) !== true) {
+    wall_json_response(['error' => 'Please confirm your message may be posted publicly.'], 400);
+}
+
 $text = trim((string)($body['message'] ?? ''));
 
 if ($text === '') {
