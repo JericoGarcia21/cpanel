@@ -275,5 +275,21 @@ declare(strict_types=1);
 			<a href="wall/">Join the wall <span aria-hidden="true">↗</span></a>
 		</aside>
 	</main>
+
+	<div style="max-width: 1100px; margin: 0 auto 20px; padding: 0 20px;">
+		<p style="margin: 0; padding: 14px 18px; border: 1px solid rgba(23, 25, 27, 0.14); background: #fff8d6; color: #3f3a20; font-size: 14px; line-height: 1.6; border-radius: 10px;">
+			<strong>Disclaimer:</strong> This website is created for demonstration and academic purposes only as part of an SIA subject project. It is not a real company, official service, registered business, or commercial website. No claims are made regarding actual business operations, legal standing, or real-world services.
+		</p>
+	</div>
+
+	<footer class="site-footer" style="border-top: 1px solid rgba(23, 25, 27, 0.12); padding: 18px 20px 28px; text-align: center; font-size: 14px; color: #4f564f;">
+		<div style="display: flex; justify-content: center; gap: 14px; flex-wrap: wrap; margin-bottom: 10px;">
+			<a href="privacy-policy.php" style="font-weight: 700; text-decoration: none;">Privacy Policy</a>
+			<a href="terms-and-conditions.php" style="font-weight: 700; text-decoration: none;">Terms</a>
+			<a href="moderation-policy.php" style="font-weight: 700; text-decoration: none;">Moderation</a>
+			<a href="copyright-policy.php" style="font-weight: 700; text-decoration: none;">Copyright</a>
+		</div>
+		<span>© 2026 Message Wall</span>
+	</footer>
 </body>
 </html>
