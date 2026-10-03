@@ -58,12 +58,11 @@ const popupEl = document.getElementById('popup');
 const popupTextEl = document.getElementById('popupText');
 const moreCountEl = document.getElementById('moreCount');
 
-const MAX_VISIBLE = 60; // beyond this, only the most-repeated messages are shown
-
-let known = new Map(); // id -> count
+const MAX_VISIBLE = 60;
+let lastId = 0;
+let known = new Map();
 let popupQueue = [];
 let popupBusy = false;
-let firstLoad = true;
 let lastMessages = [];
 
 function colorFor(id) {
@@ -91,27 +90,19 @@ function drainPopupQueue() {
 }
 
 function renderCloud(messages) {
-    // when there are a lot of unique messages, only keep the most-repeated
-    // ones on screen so the wall stays readable instead of overflowing
     const sorted = [...messages].sort((a, b) =>
         b.count - a.count || new Date(b.updated_at) - new Date(a.updated_at)
     );
     const visible = sorted.slice(0, MAX_VISIBLE);
     const hiddenCount = sorted.length - visible.length;
-
-    // the more messages currently on screen, the smaller each one starts,
-    // so a busy wall shrinks to fit instead of spilling off the edge
     const density = Math.min(1, 24 / Math.max(1, visible.length));
     const maxCount = Math.max(1, ...visible.map(m => m.count));
-
-    // on narrow screens (phones/tablets held up as a mini "big screen"),
-    // shrink everything further so long words don't force horizontal overflow
     const viewportScale = Math.max(0.4, Math.min(1, window.innerWidth / 900));
 
     cloudEl.innerHTML = '';
     visible.forEach(m => {
         const ratio = m.count / maxCount;
-        const size = Math.max(0.7, (1.1 + ratio * 4.5) * Math.max(0.45, density) * viewportScale); // rem
+        const size = Math.max(0.7, (1.1 + ratio * 4.5) * Math.max(0.45, density) * viewportScale);
         const bubble = document.createElement('div');
         bubble.className = 'bubble font-bold';
         bubble.style.fontSize = size + 'rem';
@@ -128,27 +119,41 @@ function renderCloud(messages) {
     }
 }
 
-async function poll() {
+async function loadMessages() {
     try {
-        const res = await fetch('api/messages.php');
+        const res = await fetch('api/messages.php?last_id=' + lastId);
         const data = await res.json();
         const messages = data.messages || [];
 
-        if (!firstLoad) {
-            for (const m of messages) {
-                const prevCount = known.get(m.id);
-                if (prevCount === undefined || m.count > prevCount) {
-                    showPopup(m.text);
-                }
+        if (!messages.length) {
+            return;
+        }
+
+        const newestId = messages.reduce((max, msg) => Math.max(max, Number(msg.id || 0)), lastId);
+        lastId = newestId;
+
+        for (const msg of messages) {
+            const prevCount = known.get(Number(msg.id));
+            if (prevCount === undefined || Number(msg.count) > prevCount) {
+                showPopup(msg.text);
             }
         }
 
-        known = new Map(messages.map(m => [m.id, m.count]));
-        lastMessages = messages;
-        renderCloud(messages);
-        firstLoad = false;
+        const merged = [...lastMessages, ...messages].reduce((map, msg) => {
+            const key = Number(msg.id);
+            const existing = map.get(key);
+            if (!existing || Number(msg.count) > Number(existing.count)) {
+                map.set(key, msg);
+            }
+            return map;
+        }, new Map());
+
+        const sorted = [...merged.values()].sort((a, b) => Number(b.id) - Number(a.id));
+        known = new Map(sorted.map(m => [Number(m.id), Number(m.count)]));
+        lastMessages = sorted;
+        renderCloud(sorted);
     } catch (e) {
-        // ignore transient network errors, next poll will retry
+        // ignore transient network errors and retry on the next poll
     }
 }
 
@@ -163,6 +168,8 @@ document.addEventListener('keydown', async (e) => {
             body: JSON.stringify({ code }),
         });
         if (res.ok) {
+            lastId = 0;
+            lastMessages = [];
             known = new Map();
             cloudEl.innerHTML = '';
             alert('Wall reset.');
@@ -180,8 +187,23 @@ window.addEventListener('resize', () => {
     resizeTimer = setTimeout(() => renderCloud(lastMessages), 200);
 });
 
-poll();
-setInterval(poll, 1500);
+(async function bootstrap() {
+    try {
+        const res = await fetch('api/messages.php');
+        const data = await res.json();
+        const initial = data.messages || [];
+        if (initial.length) {
+            lastMessages = [...initial].sort((a, b) => Number(b.id) - Number(a.id));
+            lastId = Number(lastMessages[0].id);
+            known = new Map(lastMessages.map(m => [Number(m.id), Number(m.count)]));
+            renderCloud(lastMessages);
+        }
+    } catch (e) {
+        // ignore initial load errors; poll() will retry
+    }
+
+    setInterval(loadMessages, 1500);
+})();
 </script>
 </body>
 </html>
